@@ -70,7 +70,8 @@ pub mod tokenvesting {
           Some(product) => {
             // Some(product: u64) => {
             product / total_vesting_time as u64
-          },
+          }
+          ,
           None => {
             return Err(ErrorCode::CalculationOverflow.info())
           }
@@ -327,4 +328,3 @@ pub enum ErrorCode {
 //   Ok(())
 // }
 
-////
