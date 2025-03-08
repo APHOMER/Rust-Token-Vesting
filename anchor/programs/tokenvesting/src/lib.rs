@@ -173,7 +173,8 @@ pub struct CreateEmployeeAccount<'info> {
 //  DERIVE ACCOUNT FOR CLAIM TOKEN
 #[derive(Accounts)]
 #[instruction(company_name: String)]
-pub struct ClaimToken<'info> {
+// pub struct ClaimToken<'info> {
+pub struct ClaimToken<'info, AssocoiatedToken> {
   #[account(mut)]
   pub beneficiary: Signer<'info>,
 
