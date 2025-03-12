@@ -6,7 +6,7 @@ use anchor_spl::{associated_token::AssociatedToken, token_interface::{self, Mint
 
 use anchor_lang::prelude::*;
 
-declare_id!("coUnmi3oBUtwtd9fjeAvSsJssXh5A5xyPbhpewyzRVF");
+declare_id!("5qfZiwWwVMvjdtMQfQnpR9EC2HgVmrGVHSMRgV5xaJE4");
 
 #[program]
 pub mod tokenvesting {
@@ -49,7 +49,7 @@ pub mod tokenvesting {
     }
 
     pub fn claim_tokens(ctx: Context<ClaimToken>, _company_name: String) -> Result<()> {
-      let employee_account: &mut Account<{ '_, EmployeeAccount }> = &mut ctx.accounts.employee_account;
+      let employee_account: &mut Account<{ '_', EmployeeAccount }> = &mut ctx.accounts.employee_account;
 
       let now: u64 = Clock::get{}?.unix_timestamp;
       // 
@@ -70,8 +70,7 @@ pub mod tokenvesting {
           Some(product) => {
             // Some(product: u64) => {
             product / total_vesting_time as u64
-          }
-          ,
+          },
           None => {
             return Err(ErrorCode::CalculationOverflow.info())
           }
@@ -174,7 +173,7 @@ pub struct CreateEmployeeAccount<'info> {
 #[derive(Accounts)]
 #[instruction(company_name: String)]
 // pub struct ClaimToken<'info> {
-pub struct ClaimToken<'info, AssocoiatedToken> {
+pub struct ClaimToken<'info, AssociatedToken> {
   #[account(mut)]
   pub beneficiary: Signer<'info>,
 
@@ -211,7 +210,7 @@ pub struct ClaimToken<'info, AssocoiatedToken> {
   )]
   pub employee_token_account: InterfaceAccount<'info, TokenAccount>,
   pub token_program: Interface<'info, TokenInterface>,
-  pub associated_token_program: Program<'info, AssocoiatedToken>,
+  pub associated_token_program: Program<'info, AssociatedToken>,
   pub system_program: Program<'info, System>,
 
 }
