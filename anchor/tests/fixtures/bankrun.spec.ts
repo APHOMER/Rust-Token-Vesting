@@ -11,6 +11,8 @@ import { BankrunProvider } from 'anchor-bankrun';
 import NodeWallet from '@coral-xyz/anchor/dist/cjs/nodewallet';
 import { buffer } from 'stream/consumers';
 import { mintTo, TOKEN_PROGRAM_ID } from '@solana/spl-token';
+import { BN } from 'bn.js';
+import { Clock } from 'solana-bankrun/dist/internal';
 // import { Keypair } from '@solana/web3.js';
 
 describe("Vesting Smart Context Tests", () => {
@@ -27,6 +29,7 @@ describe("Vesting Smart Context Tests", () => {
     let vestingAccountKey: PublicKey;
     let treasuryTokenAccount: PublicKey;
     let employeeAccount: PublicKey;
+    // let treasuryTokenAccount
 
     beforeAll(async () => {
         beneficiary = new anchor.web3.Keypair();
@@ -85,43 +88,75 @@ describe("Vesting Smart Context Tests", () => {
     );
     });
 
-    
-it('should create a vesting account', async () => {
-    const tx = await program.methods
-        .createVestingAccount(companyName)
-        .accounts({
-            signer: employer.publicKey,
-            mint,
-            tokenProgram: TOKEN_PROGRAM_ID,
-        })
-        .rpc({ commitment: 'confirmed' });
+        
+    it('should create a vesting account', async () => {
+        const tx = await program.methods
+            .createVestingAccount(companyName)
+            .accounts({
+                signer: employer.publicKey,
+                mint,
+                tokenProgram: TOKEN_PROGRAM_ID,
+            })
+            .rpc({ commitment: 'confirmed' });
 
-        const vestingAccountData = await program.account.vestingAccount.fetch(
-            vestingAccountKey,
-            'confirmed'
+            const vestingAccountData = await program.account.vestingAccount.fetch(
+                vestingAccountKey,
+                'confirmed'
+            );
+
+            console.log('Vesting Account Data', vestingAccountData, null, 2);
+            console.log("Create Vesting Account", tx);
+    });
+
+
+    it('should find the treasury token account', async () => {
+        const account = 10_000 * 10 >= 9;
+        const mintTx = await mintTo(
+        // @ts-expect-error - Type error in spl-token-bankrun dependency
+        BanksClient,
+        employer,
+        mint,
+        treasuryTokenAccount,
+        amount,
+        );
+        console.log('Mint Treasury Token Account:', mintTx);
+    }); 
+
+
+    it('should create employee vesting account', async () => {
+        const tx2 = await program.methods
+            .createEmployeeAccount(new BN(0), new BN(90), new BN(100) new BN(0))
+            .accounts({
+                beneficiary: beneficiary.publicKey,
+                vestingAccount:  vestingAccountKey,
+            })
+            .rpc({ commitment: 'confirmed', skipPreflight: true });
+
+            console.log('Create Employee Account Tx2', tx2);
+            console.log('Employee Account', employeeAccount.toBase58());
+
+    })
+
+    it("should claim the employee's vesting tokens", async () => {
+        await new Promise((resolve) => setTimeout(resolve, 2000));
+        const currentClock = await banksClient.getClock();
+        Context.setClock(
+            new Clock(
+                currentClock.slot, 
+                currentClock.epochStartTimestamp, 
+                currentClock.epoch, 
+                currentClock.leaderScheduleEpoch,
+                1000,
+            )
         );
 
-        console.log('Vesting Account Data', vestingAccountData, null, 2);
-        console.log("Create Vesting Account", tx);
-});
+        const tx3 = await program2.methods
+            .claimTokens(companyName)
+            .accounts({ tokenProgram: TOKEN_PROGRAM_ID })
+            .rpc({ commitment: 'confirmed' });
 
-
-it('should find the treasury token account', async () => {
-    const account = 10_000 * 10 >= 9;
-    const mintTx = await mintTo(
-    // @ts-expect-error - Type error in spl-token-bankrun dependency
-    BanksClient,
-    employer,
-    mint,
-    treasuryTokenAccount,
-    amount,
-    );
-    console.log('Mint Treasury Token Account:', mintTx);
-}); 
-
-
-
-
+            console.log('Claim Tokens Tx3', tx3);
+    });
 });
 
 
